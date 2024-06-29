@@ -198,11 +198,11 @@ Here are Examples of user queries:
             retrieved_info = self.retrieval_agent.retrieve_information(preprocessed_data, task_type)
 
             if task_type == 'restaurant':
-                response = self.restaurant_agent.handle_task(preprocessed_data, retrieved_info)
+                response = self.restaurant_agent.handle_task(preprocessed_data, retrieved_info, history)
             elif task_type == 'food':
-                response = self.food_agent.handle_task(preprocessed_data, retrieved_info)
+                response = self.food_agent.handle_task(preprocessed_data, retrieved_info, history)
             elif task_type == 'branding':
-                response = self.branding_agent.handle_task(preprocessed_data, retrieved_info)
+                response = self.branding_agent.handle_task(preprocessed_data, retrieved_info, history)
             else:
                 return {"error": "Invalid task type"}
 

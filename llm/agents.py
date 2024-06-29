@@ -177,8 +177,8 @@ class RestaurantAgent:
         self.api_key = api_key
         self.backstory = backstory
 
-    def handle_task(self, data, retrieved_info):
-        combined_data = data + "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+    def handle_task(self, data, retrieved_info, history):
+        combined_data =  data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
         print("RestaurantAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="restaurant", backstory=self.backstory)
 
@@ -187,8 +187,8 @@ class FoodAgent:
         self.api_key = api_key
         self.backstory = backstory
 
-    def handle_task(self, data, retrieved_info):
-        combined_data = data + "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+    def handle_task(self, data, retrieved_info, history):
+        combined_data = data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
         print("FoodAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="food", backstory=self.backstory)
 
@@ -197,8 +197,8 @@ class BrandingAgent:
         self.api_key = api_key
         self.backstory = backstory
 
-    def handle_task(self, data, retrieved_info, backstory):
-        combined_data = data + "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+    def handle_task(self, data, retrieved_info, history):
+        combined_data = data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
         print("BrandingAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="branding", backstory=self.backstory)
 
