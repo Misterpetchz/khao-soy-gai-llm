@@ -1,7 +1,15 @@
 import os
 import json
-from agents import PreprocessAgent, RetrievalAgent, RestaurantAgent, FoodAgent, BrandingAgent, PostprocessAgent
-from typhoon import get_typhoon_response
+from agents import (
+    PreprocessAgent, 
+    RetrievalAgent, 
+    RestaurantAgent, 
+    FoodAgent, 
+    BrandingAgent, 
+    PostprocessAgent,
+    ChatHistoryAgent
+)
+from typhoon import get_llm_prediction
 
 from dotenv import load_dotenv
 # Load environment variables
@@ -14,7 +22,7 @@ if not api_key:
 class ManagerAgent:
     def __init__(self, api_key):
         self.preprocess_agent = PreprocessAgent()
-        self.retrieval_agent = RetrievalAgent("data_special.csv")  # Pass the CSV file path to the RetrievalAgent
+        self.retrieval_agent = RetrievalAgent("data.csv")  # Pass the CSV file path to the RetrievalAgent
         
         self.restaurant_agent = RestaurantAgent(
             api_key, 
@@ -32,6 +40,7 @@ class ManagerAgent:
         )
         
         self.postprocess_agent = PostprocessAgent()
+        self.chat_history_agent = ChatHistoryAgent()
 
     def predict_agent(self, data):
         # # Simple heuristic-based method to predict the agent based on keywords
@@ -44,7 +53,10 @@ class ManagerAgent:
         #     return 'branding'
         # else:
         #     return 'unknown'
-        return get_typhoon_response(user_text = data.lower(), api_key = api_key, backstory = "You are a helpful assistant. Classify the following Thai text into one of the three classes - food, restaurant, or branding. Only respond with the category name.")
+        response = get_llm_prediction(user_text = data.lower(), api_key = api_key, 
+                                      backstory = "You are a helpful assistant. Classify the following Thai text into one of the three classes - food, restaurant, or branding. Only respond with the category name.")
+        print(f"----- Select {response.upper()} Agent -----")
+        return response
         
 
     def handle_request(self, request):
@@ -53,6 +65,9 @@ class ManagerAgent:
 
             if not data:
                 return {"error": "Missing data"}
+            
+            # Preprocess the data
+            preprocessed_data = self.preprocess_agent.preprocess(data)
 
             # Predict the appropriate agent based on the data content
             task_type = self.predict_agent(data)
@@ -60,11 +75,8 @@ class ManagerAgent:
             if task_type == 'unknown':
                 return {"error": "Unable to determine the appropriate agent"}
 
-            # Preprocess the data
-            preprocessed_data = self.preprocess_agent.preprocess(data)
-
             # Perform retrieval to get relevant information
-            retrieved_info = self.retrieval_agent.retrieve_information(preprocessed_data)
+            retrieved_info = self.retrieval_agent.retrieve_information(preprocessed_data, task_type)
 
             if task_type == 'restaurant':
                 response = self.restaurant_agent.handle_task(preprocessed_data, retrieved_info)
@@ -77,20 +89,30 @@ class ManagerAgent:
 
             # Postprocess the response
             final_response = self.postprocess_agent.postprocess(response)
+            
+            # Log the interaction
+            self.chat_history_agent.log_interaction(data, final_response)
+            
             return final_response
 
         except Exception as e:
             return {"error": str(e)}
-       
-# Example Usage
-if __name__ == "__main__":
+
+def qa_loop():
     manager = ManagerAgent(api_key)
 
-    # Create a sample request for a local Thai food description (Chiang Mai)
-    request = {
-        "data": "ช่วยแนะนำร้านอาหารท้องถิ่นในเชียงใหม่ที่มีชื่อเสียงและเป็นที่นิยม โดยเน้นร้านที่เสิร์ฟอาหารพื้นเมืองของเชียงใหม่ เช่น ข้าวซอย แกงฮังเล และน้ำพริกอ่อง และบรรยากาศดีสำหรับครอบครัว กรุณาตอบเป็นภาษาไทย"
-    }
+    print("Welcome to the QA system. Type 'exit' to quit.")
+    while True:
+        user_input = input("User: ")
+        if user_input.lower() == "exit":
+            print("Exiting the QA system. Goodbye!")
+            break
 
-    # Handle the request
-    response = manager.handle_request(request)
-    print(json.dumps(response, indent=4, ensure_ascii=False))
+        request = {"data": user_input}
+        response = manager.handle_request(request)
+
+        print("System: ")
+        print(json.dumps(response, indent=4, ensure_ascii=False))
+       
+if __name__ == "__main__":
+    qa_loop()

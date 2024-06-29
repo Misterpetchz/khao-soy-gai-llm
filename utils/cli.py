@@ -18,7 +18,7 @@ def main():
     
 
     if args.command == "fetch":
-        fetch_and_store_place_collection(args.location)
+        fetch_and_store_place_collection(args.location) # python cli.py fetch "chiang mai"
     elif args.command == "query":
         recommendations = query_place_collection(args.query, args.num_results)
         print(f"Top recommendations for the query: {args.query}")

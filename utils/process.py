@@ -2,7 +2,7 @@ import logging
 import chromadb
 from chromadb.config import Settings
 from chromadb import Documents, EmbeddingFunction, Embeddings
-import cohere
+# import cohere
 import requests
 import os
 import time

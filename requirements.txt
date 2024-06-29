@@ -2,5 +2,8 @@ Flask
 python-dotenv
 line-bot-sdk==3.11.0
 requests
-pymongo[srv]
 chromadb==0.5.2
+pythainlp
+torch
+transformers
+sentence_transformers
