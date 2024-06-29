@@ -3,8 +3,8 @@ from flask import Flask, request, jsonify, abort, send_file
 from flask_cors import CORS
 import logging
 from dotenv import load_dotenv
-from pymongo.mongo_client import MongoClient
-import gridfs
+# from pymongo.mongo_client import MongoClient
+# import gridfs
 from io import BytesIO
 from argparse import ArgumentParser
 import errno
@@ -13,11 +13,16 @@ import errno
 from line_handlers import handler
 from linebot.v3.exceptions import InvalidSignatureError
 
+import chromadb
+from chromadb.config import Settings
+from chromadb import Documents, EmbeddingFunction, Embeddings
+from chromadb.utils import embedding_functions
+
 # Load environment variables
 load_dotenv()
 
 # Ensure necessary environment variables are set
-required_env_vars = ['MONGO_URI', 'TYPHOON_API_KEY', 'LINE_CHANNEL_SECRET', 'LINE_CHANNEL_ACCESS_TOKEN']
+required_env_vars = ['TYPHOON_API_KEY', 'LINE_CHANNEL_SECRET', 'LINE_CHANNEL_ACCESS_TOKEN']
 for var in required_env_vars:
     if not os.getenv(var):
         raise EnvironmentError(f"Please set the {var} environment variable in your .env file.")
@@ -48,6 +53,24 @@ def make_static_tmp_dir():
         else:
             raise
 
+chroma_settings = Settings()
+chroma_client = chromadb.Client(chroma_settings)
+
+# Ensure users collection exists
+users_collection_name = "users"
+existing_collections = chroma_client.list_collections()
+if users_collection_name not in existing_collections:
+    chroma_client.create_collection(users_collection_name)
+
+users_collection = chroma_client.get_collection(users_collection_name)
+
+shops_collection_name = "shops"
+existing_collections = chroma_client.list_collections()
+if shops_collection_name not in existing_collections:
+    chroma_client.create_collection(shops_collection_name)
+
+shops_collection = chroma_client.get_collection(shops_collection_name)
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -67,58 +90,107 @@ def return_home():
         'message':"Test API Welcome",
     })
 
-# @app.route('/api/register', methods=['POST'])
-# def register_user():
-#     # Handle form data
-#     shop_name = request.form.get('shopName')
-#     phone = request.form.get('phone')
-#     social_media = request.form.get('socialMedia')
-#     location = request.form.get('location')
+@app.route('/api/users', methods=['POST'])
+def register_user():
+    data = request.json
 
-#     # Handle file upload
-#     menu_file = request.files.get('menuFile')
-#     file_id = None
+    # Handle form data
+    name = data.get('name')
+    surname = data.get('surname')
+    age = data.get('age')
+    weight = data.get('weight')
+    height = data.get('height')
 
-#     if menu_file:
-#         file_id = grid_fs.put(menu_file, filename=menu_file.filename, contentType=menu_file.content_type)
+    ailment = data.get('ailment')
+    allergies = data.get('allergies')
 
-#     user_id = request.form.get('userId')
-#     display_name = request.form.get('displayName')
-#     picture_url = request.form.get('pictureUrl')
-#     status_message = request.form.get('statusMessage')
+    favor = data.get('favor')
+    disfavor = data.get('disfavor')
+    avoid = data.get('avoid')
 
-#     # Create record to save in MongoDB
-#     record = {
-#         'shopName': shop_name,
-#         'phone': phone,
-#         'socialMedia': social_media,
-#         'location': location,
-#         'userId': user_id,
-#         'displayName': display_name,
-#         'pictureUrl': picture_url,
-#         'statusMessage': status_message,
-#         'fileId': file_id
-#     }
+    line_user_id = data.get('lineUserId')
 
-#     # Insert record into MongoDB
-#     result = collection.insert_one(record)
+    if not name or not surname or not line_user_id:
+        return jsonify({'error': 'Missing required form data'}), 400
 
-#     # Return the response
-#     return jsonify({
-#         'status': 'success',
-#         'data': {
-#             'shopName': shop_name,
-#             'phone': phone,
-#             'socialMedia': social_media,
-#             'location': location,
-#             'userId': user_id,
-#             'displayName': display_name,
-#             'pictureUrl': picture_url,
-#             'statusMessage': status_message,
-#             'fileId': str(file_id),
-#             'id': str(result.inserted_id)
-#         }
-#     }), 201
+    record = {
+        'name': name,
+        'surname': surname,
+        'age': age,
+        'weight': weight,
+        'height': height,
+        'ailment': ailment,
+        'allergies': allergies,
+        'favor': favor,
+        'disfavor': disfavor,
+        'avoid': avoid,
+        'line_user_id': line_user_id
+    }
+
+    # embedding for users
+    placeholder_embedding = [0.0] * 768
+
+    try:
+        users_collection.add(
+            ids=[line_user_id],
+            metadatas=[record],
+            embeddings=[placeholder_embedding]
+        )
+        return jsonify({'message': 'User registered successfully'}), 201
+    except Exception as e:
+        app.logger.error(f"Error inserting user data: {e}")
+        return jsonify({'error': 'Failed to register user', 'details': str(e)}), 500
+
+@app.route('/api/shops', methods=['POST'])
+def register_shop():
+    data = request.json
+
+    shop_name = data.get('name')
+    phone_number = data.get('phoneNumber')
+    social_media = data.get('socialMedia')
+    location = data.get('location')
+
+    # Handle file uploads
+    image = request.files.get('image')
+    file_menu = request.files.get('fileMenu')
+
+    if not shop_name or not phone_number or not social_media or not location:
+        return jsonify({'error': 'Missing required form data'}), 400
+
+    # Prepare shop data
+    shop_data = {
+        'name': shop_name,
+        'phone': phone_number,
+        'social_media': social_media,
+        'location': location,
+        # null for sure that i use json body to passing formData, but json 
+        # 'image': image.filename if image else None,
+        # 'file_menu': file_menu.filename if file_menu else None
+    }
+    print(shop_data)
+
+    # Save uploaded files to a directory (e.g., 'uploads/')
+    upload_dir = os.path.join(static_tmp_path, 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    if image:
+        image.save(os.path.join(upload_dir, image.filename))
+
+    if file_menu:
+        file_menu.save(os.path.join(upload_dir, file_menu.filename))
+
+    # Embedding for shops
+    placeholder_embedding = [0.0] * 768
+    try:
+        shops_collection.add(
+            ids=[shop_name],
+            metadatas=[shop_data],
+            embeddings=[placeholder_embedding]
+        )
+        return jsonify({'message': 'Shop registered successfully'}), 201
+    except Exception as e:
+        app.logger.error(f"Error inserting shop data: {e}")
+        return jsonify({'error': 'Failed to register shop', 'details': str(e)}), 500
 
 # @app.route('/file/<file_id>', methods=['GET'])
 # def get_file(file_id):
