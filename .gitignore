@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.Python
+env/
+venv/
+static/tmp/
+.vscode/
+test_map_api/
