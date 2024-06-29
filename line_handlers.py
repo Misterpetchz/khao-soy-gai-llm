@@ -25,6 +25,7 @@ from linebot.v3.webhooks import (
 )
 from utils.process import query_place_collection
 from typhoon_integration import generate_with_typhoon
+from llm.main import qa_loop
 
 # Load environment variables
 load_dotenv()
@@ -38,8 +39,10 @@ configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
     text = event.message.text
-    recommendations = query_place_collection(text, 2)
-    generated_response = generate_with_typhoon(text, recommendations)
+    userid = event.source.user_id
+    generated_response = qa_loop(text, userid)
+    # recommendations = query_place_collection(text, 2)
+    # generated_response = generate_with_typhoon(text, recommendations, userid)
         
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
@@ -92,6 +95,8 @@ def handle_text_message(event):
                     messages=[flex_message]
                 )
             )
+        elif text == "บริการนี้ยังไม่เปิดให้ใช้งาน":
+            return
         else:
             # QuickReply
             quick_reply_buttons = QuickReply(

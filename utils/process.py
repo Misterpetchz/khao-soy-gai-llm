@@ -26,7 +26,7 @@ COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 
 # Updated ChromaDB client for local usage
 client = chromadb.PersistentClient(
-    path="../chroma_db",
+    path="./chroma_db",
     settings=Settings(anonymized_telemetry=False)
 )
 
