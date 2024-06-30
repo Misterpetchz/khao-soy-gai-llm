@@ -234,7 +234,7 @@ def qa_loop(input, userid):
         return content
     except (json.JSONDecodeError, KeyError, TypeError, IndexError) as e:
         print(f"Error processing response: {e}")
-        return f"Error processing response: {e}"
+        return "คำถามนี้ไม่เกี่ยวข้องกับความสามารถของเรา กรุณาถามคำถามอีกครั้งค่ะ"
     
     # print("Welcome to the QA system. Type 'exit' to quit.")
     # while True:

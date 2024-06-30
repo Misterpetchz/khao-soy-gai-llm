@@ -100,8 +100,8 @@ class RetrievalAgent:
             # Print re-ranked documents
             print("Re-ranked documents:")
             # print(re_ranked_docs)
-
-            return re_ranked_docs.to_dict(orient='records')
+            res = "Relevant information: " + json.dumps(re_ranked_docs.to_dict(orient='records'), ensure_ascii=False)
+            return res
         else:
             return ""
 
@@ -178,7 +178,7 @@ class RestaurantAgent:
         self.backstory = backstory
 
     def handle_task(self, data, retrieved_info, history):
-        combined_data =  data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+        combined_data = "Your input: " + data + "\n\n" + "History information: \n" + history +  "\n\n" + retrieved_info
         print("RestaurantAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="restaurant", backstory=self.backstory)
 
@@ -188,7 +188,7 @@ class FoodAgent:
         self.backstory = backstory
 
     def handle_task(self, data, retrieved_info, history):
-        combined_data = data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+        combined_data = "Your input: " + data + "\n\n" + "History information: \n" + history +  "\n\n" + retrieved_info
         print("FoodAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="food", backstory=self.backstory)
 
@@ -198,7 +198,7 @@ class BrandingAgent:
         self.backstory = backstory
 
     def handle_task(self, data, retrieved_info, history):
-        combined_data = data + "\n\n" + "History information: \n" + history +  "\n\n" + "Relevant information: " + json.dumps(retrieved_info, ensure_ascii=False)
+        combined_data = "Your input: " + data + "\n\n" + "History information: \n" + history +  "\n\n" + retrieved_info
         print("BrandingAgent Done!!")
         return get_typhoon_response(combined_data, self.api_key, task="branding", backstory=self.backstory)
 

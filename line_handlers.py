@@ -40,14 +40,14 @@ configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
 def handle_text_message(event):
     text = event.message.text
     userid = event.source.user_id
-    generated_response = qa_loop(text, userid)
+    
     # recommendations = query_place_collection(text, 2)
     # generated_response = generate_with_typhoon(text, recommendations, userid)
         
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
             
-        if text == "แม่มณี":
+        if text == "เจ๊จอง" or text == "เจ๊ จอง":
             # Create Flex buttons
             flex_buttons = [        
                 FlexSeparator(margin="lg"),           
@@ -60,7 +60,7 @@ def handle_text_message(event):
                 FlexButton(
                     style='primary',
                     color='#F7B62B',
-                    action=MessageAction(label="เมนูยอดนิยม", text="เมนูยอดนิยมในไทย")
+                    action=MessageAction(label="เมนูยอดนิยม", text="เมนูยอดนิยมในเชียงใหม่")
                 ), 
                 FlexSeparator(margin="lg"),
                 FlexButton(
@@ -98,14 +98,15 @@ def handle_text_message(event):
         elif text == "บริการนี้ยังไม่เปิดให้ใช้งาน":
             return
         else:
+            generated_response = qa_loop(text, userid)
             # QuickReply
             quick_reply_buttons = QuickReply(
                 items=[
                     QuickReplyItem(
-                        action=MessageAction(label="เรียกแม่มณี", text="แม่มณี")
+                        action=MessageAction(label="เจ๊จอง", text="เจ๊จอง")
                     ),
                     QuickReplyItem(
-                        action=MessageAction(label="ร้านอาหารยอดฮิต", text="ร้านอาหารยอดฮิตในไทย")
+                        action=MessageAction(label="ร้านอาหารยอดฮิต", text="ร้านอาหารยอดฮิตในเชียงใหม่")
                     ),
                 ]
             )
