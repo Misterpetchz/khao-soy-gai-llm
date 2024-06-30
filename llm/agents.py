@@ -113,7 +113,7 @@ class RetrievalAgent:
                 outputs = self.reranker_model(**inputs)
             score = outputs.logits.squeeze().tolist()
             scores.append(score)
-
+        print(scores)
         # Sort documents based on the scores
         ranked_docs = [doc for _, doc in sorted(zip(scores, docs), reverse=True)]
         return pd.DataFrame(ranked_docs, columns=['description'])

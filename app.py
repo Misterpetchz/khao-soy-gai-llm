@@ -27,12 +27,6 @@ for var in required_env_vars:
     if not os.getenv(var):
         raise EnvironmentError(f"Please set the {var} environment variable in your .env file.")
 
-# Connect to MongoDB with `pymongo[srv]`
-# mongo_uri = os.getenv('MONGO_URI')
-# client = MongoClient(mongo_uri)
-# db = client['maemanee']  # Use your MongoDB database name
-# grid_fs = gridfs.GridFS(db)
-# collection = db['registrations']
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -163,9 +157,7 @@ def register_shop():
         'phone': phone_number,
         'social_media': social_media,
         'location': location,
-        # null for sure that i use json body to passing formData, but json 
-        # 'image': image.filename if image else None,
-        # 'file_menu': file_menu.filename if file_menu else None
+       
     }
     print(shop_data)
 
@@ -192,13 +184,6 @@ def register_shop():
         app.logger.error(f"Error inserting shop data: {e}")
         return jsonify({'error': 'Failed to register shop', 'details': str(e)}), 500
 
-# @app.route('/file/<file_id>', methods=['GET'])
-# def get_file(file_id):
-#     try:
-#         grid_out = grid_fs.get_last_version(file_id)
-#         return send_file(BytesIO(grid_out.read()), attachment_filename=grid_out.filename, mimetype=grid_out.content_type)
-#     except gridfs.NoFile:
-#         abort(404)
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(

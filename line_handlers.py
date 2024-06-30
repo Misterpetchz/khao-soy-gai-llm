@@ -54,7 +54,7 @@ def handle_text_message(event):
                 FlexButton(
                     style='primary',
                     color='#F7B62B',
-                    action=MessageAction(label="ร้านอาหารใก้ลฉัน", text="ร้านอาหารใก้ลฉัน")
+                    action=MessageAction(label="ร้านอาหารใกล้ฉัน", text="ร้านอาหารใกล้ฉัน")
                 ),
                 FlexSeparator(margin="lg"),
                 FlexButton(
@@ -102,7 +102,7 @@ def handle_text_message(event):
             quick_reply_buttons = QuickReply(
                 items=[
                     QuickReplyItem(
-                        action=MessageAction(label="เรียกแม่มณี", text="แม่มณี")
+                        action=MessageAction(label="เรียกเจ๊จอง", text="เจ๊จอง")
                     ),
                     QuickReplyItem(
                         action=MessageAction(label="ร้านอาหารยอดฮิต", text="ร้านอาหารยอดฮิตในไทย")

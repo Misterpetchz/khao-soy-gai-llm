@@ -7,3 +7,7 @@ pythainlp
 torch
 transformers
 sentence_transformers
+flask_cors
+cohere
+pandas
+pyyaml
